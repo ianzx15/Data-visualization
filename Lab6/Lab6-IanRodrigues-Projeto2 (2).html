@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variação da Chuva Acumulada por Ano</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div id="chart" style="width: 800px; height: 600px;"></div>
+
+    <script>
+        var chart = echarts.init(document.getElementById('chart'));
+
+        var anos = [];
+        var variacaoChuva = [];
+        var dataset = 'dataset_carnauba_2022.csv';
+
+        function carregarDados() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var linhas = xhr.responseText.split('\n');
+                        for (var i = 1; i < linhas.length; i++) {
+                            var valores = linhas[i].split(',');
+                            anos.push(valores[0]);
+                            if (i > 1) {
+                                var variacao = parseFloat(valores[1]) - parseFloat(linhas[i - 1].split(',')[1]);
+                                variacaoChuva.push(variacao);
+                            }
+                        }
+                        atualizarGrafico();
+                    } else {
+                        console.error('Erro ao carregar o arquivo CSV');
+                    }
+                }
+            };
+            xhr.open('GET', dataset, true);
+            xhr.send();
+        }
+
+        function formatarVariacao(valor) {
+            return valor.toFixed(2);
+        }
+
+        function atualizarGrafico() {
+            chart.setOption({
+                title: {
+                    text: 'Variação da chuva acumulada por ano (2014 a 2022) - Fazenda Carnaúba - Taperoá - PB'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function (params) {
+                        return params[0].name + ': ' + formatarVariacao(params[0].value) + ' mm';
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: anos.slice(1)
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Variação de Chuva (mm)',
+                    axisLabel: {
+                        formatter: '{value}'
+                    }
+                },
+                dataZoom: [
+                    {
+                        type: 'inside',
+                        start: 0,
+                        end: 100
+                    }
+                ],
+                series: [{
+                    type: 'line',
+                    data: variacaoChuva
+                }]
+            });
+        }
+
+        carregarDados();
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização de Volume de Chuva</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div id="chart" style="width: 800px; height: 600px;"></div>
+
+    <script>
+        var chart = echarts.init(document.getElementById('chart'));
+
+        var anos = [];
+        var totalChuva = [];
+        var dataset = 'dataset_carnauba_2022.csv';
+
+        function carregarDados() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var linhas = xhr.responseText.split('\n');
+                        for (var i = 1; i < linhas.length; i++) {
+                            var valores = linhas[i].split(',');
+                            anos.push(valores[0]);
+                            totalChuva.push(parseFloat(valores[1]));
+                        }
+                        atualizarGrafico();
+                    } else {
+                        console.error('Erro ao carregar o arquivo CSV');
+                    }
+                }
+            };
+            xhr.open('GET', dataset, true);
+            xhr.send();
+        }
+
+        function atualizarGrafico() {
+            chart.setOption({
+                title: {
+                    text: 'Volume de chuva acumulada por ano (2013 a 2022) - Fazenda Carnaúba - Taperoá - PB'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: anos
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Volume de Chuva (mm)'
+                },
+                // habilita zoom pelo mouse
+                dataZoom: [
+                    {
+                        type: 'inside',
+                        start: 0,
+                        end: 100
+                    }
+                ],
+                series: [{
+                    type: 'line',
+                    data: totalChuva
+                }]
+            });
+        }
+
+        carregarDados();
+    </script>
+</body>
+</html>
